@@ -19,9 +19,14 @@ package idgen
 
 import (
 	"strings"
+	"sync"
 
 	"github.com/google/uuid"
 )
+
+var generateGlobalIDFunc = UUID
+
+var once sync.Once
 
 // UUID generate UUID
 func UUID() (string, error) {
@@ -34,5 +39,14 @@ func UUID() (string, error) {
 
 // GenerateGlobalID generates global unique id
 func GenerateGlobalID() (globalID string, err error) {
-	return UUID()
+	return generateGlobalIDFunc()
+}
+
+func Set(f func() (string, error)) {
+	if f == nil {
+		panic("generate global id function should not be nil")
+	}
+	once.Do(func() {
+		generateGlobalIDFunc = f
+	})
 }
